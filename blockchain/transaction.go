@@ -9,19 +9,6 @@ import (
 	"log"
 )
 
-//TxInput struct
-type TxInput struct {
-	ID  []byte
-	Out int
-	Sig string
-}
-
-//TxOutput struct
-type TxOutput struct {
-	Value  int
-	PubKey string
-}
-
 //Transaction struct
 type Transaction struct {
 	ID      []byte
@@ -94,14 +81,4 @@ func NewTransaction(from, to string, amount int, chain *BlockChain) *Transaction
 //IsCoinbase cheks if the transaction is a coinbase transaction
 func (tx *Transaction) IsCoinbase() bool {
 	return len(tx.Inputs) == 1 && len(tx.Inputs[0].ID) == 0 && tx.Inputs[0].Out == -1
-}
-
-//CanUnlock checks if the user can unlock the transaction
-func (in *TxInput) CanUnlock(data string) bool {
-	return in.Sig == data
-}
-
-//CanBeUnlocked checks if the user can unlock the transaction via the pubkey
-func (out *TxOutput) CanBeUnlocked(data string) bool {
-	return out.PubKey == data
 }

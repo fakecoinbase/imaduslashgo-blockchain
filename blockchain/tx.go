@@ -1,24 +1,48 @@
 package blockchain
 
+import (
+	"bytes"
+
+	"github.com/imadu/blockchain_app/wallet"
+)
+
 //TxInput struct
 type TxInput struct {
-	ID  []byte
-	Out int
-	Sig string
+	ID        []byte
+	Out       int
+	Signature []byte
+	PubKey    []byte
 }
 
 //TxOutput struct
 type TxOutput struct {
-	Value  int
-	PubKey string
+	Value      int
+	PubKeyHash []byte
 }
 
-//CanUnlock checks if the user can unlock the transaction
-func (in *TxInput) CanUnlock(data string) bool {
-	return in.Sig == data
+//NewTXOutput creates a new transaction output and locks it
+func NewTXOutput(value int, address string) *TxOutput {
+	txo := &TxOutput{value, nil}
+	txo.Lock([]byte(address))
+
+	return txo
 }
 
-//CanBeUnlocked checks if the user can unlock the transaction via the pubkey
-func (out *TxOutput) CanBeUnlocked(data string) bool {
-	return out.PubKey == data
+//UsesKey checkes if a public key exists in the wallet
+func (in *TxInput) UsesKey(pubKeyHash []byte) bool {
+	lockingHash := wallet.PublicKeyHash(in.PubKey)
+
+	return bytes.Compare(lockingHash, pubKeyHash) == 0
+}
+
+//Lock locks the output against a given address
+func (out *TxOutput) Lock(address []byte) {
+	pubKeyHash := wallet.Base58Decode(address)
+	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
+	out.PubKeyHash = pubKeyHash
+}
+
+//IsLockedWithKey Checks is a users pubkey hash is the same as the transaction hash
+func (out *TxOutput) IsLockedWithKey(pubKeyHash []byte) bool {
+	return bytes.Compare(out.PubKeyHash, pubKeyHash) == 0
 }
